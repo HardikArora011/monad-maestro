@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Star, CheckCircle2, Zap, Terminal, Send, Loader2, ArrowLeft } from "lucide-react";
+import { Star, CheckCircle2, Zap, Terminal, Send, Loader2, ArrowLeft, TrendingUp, Shield, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 // MCP domain config for UI hints
@@ -40,6 +40,7 @@ const DOMAIN_COLORS: Record<string, string> = {
   github: "from-gray-600 to-gray-800",
   filesystem: "from-teal-500 to-teal-700",
   web_search: "from-cyan-500 to-cyan-700",
+  image_gen: "from-rose-500 to-pink-700",
 };
 
 export default function AgentDetailPage() {
@@ -55,6 +56,15 @@ export default function AgentDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reputation, setReputation] = useState<any>(null);
+
+  function fetchReputation() {
+    fetch(`/api/agents/${id}/reputation`)
+      .then((r) => r.json())
+      .then((data) => { if (data.reputation) setReputation(data.reputation); })
+      .catch(() => {});
+  }
 
   useEffect(() => {
     // Fetch Agent details
@@ -65,17 +75,15 @@ export default function AgentDetailPage() {
         const foundAgent = agents.find((a) => a.id === id);
         if (foundAgent) {
           setAgent(foundAgent);
-          // If the agent is MCP-backed (has one of our markers), fetch tools
           if (foundAgent.id in MCP_HINTS || foundAgent.id.includes("mcp") || foundAgent.domain.includes("crypto") || foundAgent.domain.includes("search")) {
             fetch(`/api/agents/${id}/tools`)
               .then((res) => res.json())
-              .then((data) => {
-                if (data.tools) setTools(data.tools);
-              })
+              .then((data) => { if (data.tools) setTools(data.tools); })
               .catch((err) => console.error("Failed to fetch tools:", err));
           }
         }
       });
+    fetchReputation();
   }, [id]);
 
   // Update JSON template when tool changes
@@ -120,6 +128,8 @@ export default function AgentDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
       setResult(data);
+      // Refresh reputation after every task
+      fetchReputation();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -129,7 +139,7 @@ export default function AgentDetailPage() {
 
   if (!agent) {
     return (
-      <div className="relative min-h-screen bg-[#030303] text-white flex items-center justify-center">
+      <div className="relative min-h-screen bg-transparent text-white flex items-center justify-center">
         <div className="text-white/40 font-mono text-sm animate-pulse">Loading agent…</div>
       </div>
     );
@@ -140,7 +150,7 @@ export default function AgentDetailPage() {
   const gradientClass = DOMAIN_COLORS[agent.domain] ?? "from-gray-500 to-gray-700";
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">

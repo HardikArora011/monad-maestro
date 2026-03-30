@@ -24,7 +24,7 @@ const MCP_DOMAINS = new Set(["crypto_monad", "github", "filesystem", "web_search
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 const stagger = {
   hidden: {},
@@ -128,7 +128,7 @@ function AgentCard({ agent }: { agent: any }) {
                 { label: "Rate",       value: `$${agent.hourlyRate}/task` },
                 { label: "Max Budget", value: `$${agent.maxBudget}`       },
               ].map((s) => (
-                <div key={s.label} className="bg-[#030303]/70 border border-white/[0.05] rounded-xl px-3 py-2.5">
+                <div key={s.label} className="bg-transparent/70 border border-white/[0.05] rounded-xl px-3 py-2.5">
                   <span className="block text-[9px] font-mono text-white/25 uppercase tracking-[0.18em] mb-1">
                     {s.label}
                   </span>
@@ -153,6 +153,121 @@ function AgentCard({ agent }: { agent: any }) {
   );
 }
 
+// ─── Real Model Metadata ──────────────────────────────────────────────────────
+// Source: Groq pricing + OpenRouter model cards (as of March 2026)
+const MODEL_META: Record<string, {
+  displayName: string;
+  contextWindow: string;   // e.g. "128K"
+  inputCost: string;       // $ per 1M tokens, or "Free"
+  outputCost: string;
+  isFree: boolean;
+}> = {
+  // Groq
+  "llama-3.3-70b-versatile": {
+    displayName: "Llama 3.3 70B",
+    contextWindow: "128K",
+    inputCost: "$0.59",
+    outputCost: "$0.79",
+    isFree: false,
+  },
+  "llama-3.1-8b-instant": {
+    displayName: "Llama 3.1 8B Instant",
+    contextWindow: "128K",
+    inputCost: "$0.05",
+    outputCost: "$0.08",
+    isFree: false,
+  },
+  "mixtral-8x7b-32768": {
+    displayName: "Mixtral 8x7B",
+    contextWindow: "32K",
+    inputCost: "$0.24",
+    outputCost: "$0.24",
+    isFree: false,
+  },
+  // OpenRouter free models
+  "x-ai/grok-3-mini": {
+    displayName: "Grok 3 Mini",
+    contextWindow: "131K",
+    inputCost: "$0.30",
+    outputCost: "$0.50",
+    isFree: false,
+  },
+  "qwen/qwen3-4b:free": {
+    displayName: "Qwen 3 4B",
+    contextWindow: "40K",
+    inputCost: "Free",
+    outputCost: "Free",
+    isFree: true,
+  },
+  "qwen/qwen3-coder:free": {
+    displayName: "Qwen 3 Coder",
+    contextWindow: "32K",
+    inputCost: "Free",
+    outputCost: "Free",
+    isFree: true,
+  },
+  "qwen/qwen3-next-80b-a3b-instruct:free": {
+    displayName: "Qwen 3 80B",
+    contextWindow: "40K",
+    inputCost: "Free",
+    outputCost: "Free",
+    isFree: true,
+  },
+  // Stability AI
+  "stability-sd3": {
+    displayName: "Stable Diffusion 3",
+    contextWindow: "—",
+    inputCost: "$0.065/img",
+    outputCost: "—",
+    isFree: false,
+  },
+};
+
+const DEFAULT_FREE_META = {
+  displayName: "Unknown Model",
+  contextWindow: "—",
+  inputCost: "Free",
+  outputCost: "Free",
+  isFree: true,
+};
+const DEFAULT_PAID_META = {
+  displayName: "Custom Model",
+  contextWindow: "—",
+  inputCost: "$1.00",
+  outputCost: "$1.00",
+  isFree: false,
+};
+
+function getModelMeta(model: string) {
+  if (MODEL_META[model]) return MODEL_META[model];
+  if (model.endsWith(":free")) return { ...DEFAULT_FREE_META, displayName: model.split("/").pop()?.replace(":free", "") ?? model };
+  return { ...DEFAULT_PAID_META, displayName: model.split("/").pop() ?? model };
+}
+
+// ─── Domain config ─────────────────────────────────────────────────────────────
+const DOMAIN_COLORS: Record<string, string> = {
+  research:    "bg-blue-100 text-blue-800",
+  coding:      "bg-green-100 text-green-800",
+  design:      "bg-pink-100 text-pink-800",
+  writing:     "bg-yellow-100 text-yellow-800",
+  testing:     "bg-orange-100 text-orange-800",
+  data:        "bg-purple-100 text-purple-800",
+  crypto_monad:"bg-violet-100 text-violet-800",
+  github:      "bg-gray-100 text-gray-800",
+  filesystem:  "bg-teal-100 text-teal-800",
+  web_search:  "bg-cyan-100 text-cyan-800",
+  image_gen:   "bg-rose-100 text-rose-800",
+};
+
+const PROVIDER_STYLES: Record<string, { label: string; cls: string }> = {
+  groq:        { label: "Groq",       cls: "bg-orange-50 text-orange-700 border-orange-200" },
+  openrouter:  { label: "OpenRouter", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  stability:   { label: "Stability",  cls: "bg-rose-50 text-rose-700 border-rose-200" },
+};
+
+const MCP_DOMAINS = new Set(["crypto_monad", "github", "filesystem", "web_search"]);
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 export default function AgentsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [agents, setAgents]       = useState<any[]>([]);
@@ -183,7 +298,7 @@ export default function AgentsPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen bg-transparent text-white">
       {/* Background grid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 flex">
@@ -195,7 +310,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Page header */}
-      <div className="relative z-10 border-b border-white/[0.05] bg-[#030303]/80 backdrop-blur-xl pt-24 pb-10 px-6">
+      <div className="relative z-10 border-b border-white/[0.05] bg-transparent/80 backdrop-blur-xl pt-24 pb-10 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -256,7 +371,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="relative z-10 border-b border-white/[0.05] bg-[#030303]/60 backdrop-blur-xl px-6 py-4">
+      <div className="relative z-10 border-b border-white/[0.05] bg-transparent/60 backdrop-blur-xl px-6 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 items-center">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
