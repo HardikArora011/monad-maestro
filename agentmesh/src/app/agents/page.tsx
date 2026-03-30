@@ -265,8 +265,6 @@ const PROVIDER_STYLES: Record<string, { label: string; cls: string }> = {
   stability:   { label: "Stability",  cls: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
-const MCP_DOMAINS = new Set(["crypto_monad", "github", "filesystem", "web_search"]);
-
 // ─── Page ──────────────────────────────────────────────────────────────────────
 export default function AgentsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

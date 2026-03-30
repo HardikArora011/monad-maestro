@@ -237,7 +237,7 @@ const SEED_AGENTS: Agent[] = [
     createdAt: new Date().toISOString(),
   },
   {
-    id: "agent_stability",
+    id: "agent_visual_ai",
     name: "VisualAI Agent",
     domain: "image_gen",
     description: "Generates stunning images from text prompts using Stability AI's Stable Diffusion 3. Describe anything — concept art, UI mockups, illustrations.",
