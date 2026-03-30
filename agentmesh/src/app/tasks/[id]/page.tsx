@@ -174,11 +174,7 @@ export default function TaskDetailPage({
   }, [taskId]);
 
   if (!task) {
-    return (
-      <div className="relative min-h-screen bg-[#030303] text-white flex items-center justify-center">
-        <div className="text-white/40 font-mono text-sm animate-pulse">Loading task…</div>
-      </div>
-    );
+    return <div className="p-8 text-center text-muted-foreground">Loading task...</div>;
   }
 
   const handleApprove = async () => {
@@ -217,17 +213,7 @@ export default function TaskDetailPage({
   const totalSubtasks = task.subtasks?.length ?? 0;
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
-      {/* Background grid */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 flex">
-          <div className="flex-1" />
-          <div className="flex-1 border-l border-white/[0.035]" />
-          <div className="flex-1 border-l border-white/[0.035]" />
-          <div className="flex-1 border-l border-white/[0.035]" />
-        </div>
-      </div>
-      <div className="relative z-10 px-6 pt-24 pb-12 max-w-6xl mx-auto space-y-6">
+    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex justify-between items-start border-b pb-6">
         <div>
@@ -751,7 +737,6 @@ export default function TaskDetailPage({
           </Card>
         </TabsContent>
       </Tabs>
-      </div>
     </div>
   );
 }
