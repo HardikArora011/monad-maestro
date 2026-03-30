@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { WagmiProvider } from "@/providers/WagmiProvider";
-import GlobalBackground from "@/components/GlobalBackground";
+// import GlobalBackground from "@/components/GlobalBackground";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +31,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-transparent text-white font-sans overflow-x-hidden selection:bg-[#a855f7]/30">
-        <GlobalBackground />
+        {/* <GlobalBackground /> */}
         <WagmiProvider>
           <Navigation />
           <main className="flex-1 flex flex-col">{children}</main>
